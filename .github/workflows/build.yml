@@ -1,0 +1,22 @@
+on: [push, pull_request]
+name: build
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/cache@v1
+        with:
+          path: ~/.local/share/racket
+          key: ${{ runner.os }}-raco-${{ hashFiles('**/info.rkt') }}
+      - uses: Bogdanp/setup-racket@v1.7
+        with:
+          architecture: 'x64'
+          distribution: 'full'
+          version: 'current'
+      - run: raco pkg install --auto --no-setup --skip-installed
+      - run: raco setup --fast-clean trace-contract
+      - run: raco setup trace-contract
+      - uses: GabrielBB/xvfb-action@v1
+        with:
+          run: raco test --drdr --timeout 240 .
