@@ -4,6 +4,8 @@
 
 This package is not yet available on the Racket package server, so you must install it from the source.
 
-> $ git clone https://github.com/camoy/trace-contract
-> $ cd trace-contract
-> $ raco pkg install
+```
+$ git clone https://github.com/camoy/trace-contract
+$ cd trace-contract
+$ raco pkg install
+```
