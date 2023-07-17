@@ -27,6 +27,10 @@
   [trace? predicate/c]
   [trace-merge (-> trace? ... trace?)])
 
+ ;; `logger.rkt`
+ (contract-out
+  [trace-contract-logger logger?])
+
  ;; `trace-contract.rkt`
  (contract-out
   [trace-contract? predicate/c])
@@ -54,6 +58,7 @@
          "private/collector-transformer.rkt"
          "private/fail.rkt"
          "private/full-clause.rkt"
+         "private/logger.rkt"
          "private/trace-contract.rkt"
          "private/trace-contract-macro.rkt"
          "private/track-clause.rkt")

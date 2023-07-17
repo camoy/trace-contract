@@ -1,4 +1,4 @@
-# Trace Contract
+# Trace Contracts
 
 [![Build Status](https://github.com/camoy/trace-contract/workflows/build/badge.svg)](https://github.com/camoy/trace-contract/actions?query=workflow%3Abuild)
 
