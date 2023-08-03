@@ -9,3 +9,4 @@
 ;; logger
 
 (define-logger trace-contract)
+(define logger-enable? (getenv "TRACE_CONTRACT_LOGGER"))

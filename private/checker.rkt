@@ -120,7 +120,8 @@
 ;; Checker Any Any Blame Any → Void
 (define (checker-update-or-fail! ch old-acc new-acc blm val)
   (match-define (struct** checker (acc-box init-acc blame-box val-hash)) ch)
-  (log-trace-contract-info "check")
+  (when logger-enable?
+    (log-trace-contract-info "check"))
   (match new-acc
     [(fail reset explain)
      (set-box! acc-box (if (eq? reset NO-RESET) init-acc reset))

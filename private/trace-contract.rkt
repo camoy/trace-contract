@@ -83,7 +83,8 @@
   (λ (blm)
     (define blm* (blame-add-context blm "the inner contract of"))
     (λ (val neg)
-      (log-trace-contract-info "projection")
+      (when logger-enable?
+        (log-trace-contract-info "projection"))
       (define ch (trace-contract-checker-hash (trace-contract-init ctc)))
       (define collectors (trace-contract-collectors ch decls indy))
       (define inner-ctc (apply make-inner collectors))
