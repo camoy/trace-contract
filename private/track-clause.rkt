@@ -6,6 +6,7 @@
 (provide suspect<%>
          setof-suspect
          listof-suspect
+         listof-witness
          track)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -16,6 +17,7 @@
          racket/class
          racket/contract
          racket/match
+         racket/list
          racket/set
          racket/string
          "checker.rkt"
@@ -25,9 +27,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; constants
 
-(define ERROR-MSG-LINES
-  '("\n  accumulator: ~a"
-    "\n  suspects: ~a"))
+(define ERR-MSG-LINE "\n  accumulator: ~a")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; interface
@@ -35,7 +35,7 @@
 (define suspect<%>
   (interface ()
     add
-    value))
+    message))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; implementations
@@ -45,8 +45,9 @@
    (class* object% (suspect<%>)
      (super-new)
      (init-field data)
-     (define/public (add x) (new this% [data (set-add data x)]))
-     (define/public (value) (set->list data)))
+     (define/public (add x _) (new this% [data (set-add data x)]))
+     (define/public (message)
+       (format "  suspects: ~a" (set->list data))))
    [data (set)]))
 
 (define listof-suspect
@@ -54,9 +55,27 @@
    (class* object% (suspect<%>)
      (super-new)
      (init-field data)
-     (define/public (add x) (new this% [data (cons x data)]))
-     (define/public (value) (reverse data)))
+     (define/public (add x _)
+       (new this% [data (cons x data)]))
+     (define/public (message)
+       (format "  suspects: ~a" (reverse data))))
    [data null]))
+
+(define listof-witness
+  (new
+   (class* object% (suspect<%>)
+     (super-new)
+     (init-field data)
+     (define/public (add _ x)
+       (new this% [data (if (singleton? x)
+                            (append x data)
+                            (cons x data))]))
+     (define/public (message)
+       (format "  witnesses: ~v" (reverse data))))
+   [data null]))
+
+(define (singleton? x)
+  (empty? (rest x)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; macro
@@ -88,7 +107,7 @@
   (define folder* (checker-wrap-folder folder))
   (λ (acc+sus #:blame blm . args)
     (match-define (cons acc sus) acc+sus)
-    (define sus* (send sus add (blame-positive blm)))
+    (define sus* (send sus add (blame-positive blm) args))
     (match (apply folder* #:blame blm acc args)
       [(fail reset explain)
        (define reset* (cons (if (eq? reset NO-RESET) init-acc reset) init-sus))
@@ -98,6 +117,8 @@
 
 ;; Blame Any Box Suspect → Procedure
 (define (make-explain blm val old-acc sus)
-  (define msg (list 'given: "~e" (string-join ERROR-MSG-LINES "")))
-  (define args (list val old-acc (send sus value)))
-  (λ () (apply raise-blame-error blm val msg args)))
+  (define sus-msg (send sus message))
+  (define msg
+    (list 'given: "~e"
+          (string-join (list ERR-MSG-LINE sus-msg) "\n")))
+  (λ () (raise-blame-error blm val msg val old-acc)))

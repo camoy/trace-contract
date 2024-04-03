@@ -48,7 +48,8 @@
  (contract-out
   [suspect<%> interface?]
   [setof-suspect (is-a?/c suspect<%>)]
-  [listof-suspect (is-a?/c suspect<%>)]))
+  [listof-suspect (is-a?/c suspect<%>)]
+  [listof-witness (is-a?/c suspect<%>)]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; require
