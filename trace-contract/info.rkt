@@ -10,14 +10,24 @@
 ;; dependencies
 
 (define deps
-  '("base"
+  '("automata-lib"
+    "contract-etc-lib"
+    "data-lib"
+    "graph-lib"
+    "redex-etc"
+    "redex-lib"
+    "redex-pict-lib"
+    "stream-etc"
+    "base"
     "trace-contract-lib"))
 
 (define implies
   '("trace-contract-lib"))
 
 (define build-deps
-  '("chk-lib"
+  '("rackunit-lib"
+    "trace-contract-private"
+    "chk-lib"
     "racket-doc"
     "sandbox-lib"
     "scribble-lib"))

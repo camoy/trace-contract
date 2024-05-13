@@ -14,4 +14,5 @@
   '("base"
     "ee-lib"))
 
-(define build-deps '())
+(define build-deps
+  '("chk-lib"))
