@@ -5,7 +5,8 @@
 
 (provide η
          struct**
-         hash-add-set)
+         hash-add-set
+         for/values)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; require
@@ -36,6 +37,12 @@
             ([key (in-list keys)])
     (hash-update ht key (λ (s) (set-add s val)) (set val))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; macros
+
+(define-syntax-rule (for/values seqs body ...)
+  (apply values (for/list seqs body ...)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; tests
 
@@ -53,4 +60,7 @@
    #:do (define ht (hash 'a (set 1 2) 'b (set 3) 'c (set)))
    (hash-add-set ht '(a c) 4)
    (hash 'a (set 1 2 4) 'b (set 3) 'c (set 4))
+
+   (for/values ([x '(1 2 3)]) x)
+   (values 1 2 3)
    ))

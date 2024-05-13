@@ -4,8 +4,7 @@
 ;; provide
 
 (provide (struct-out trace-contract)
-         make-trace-contract
-         trace-contract-init)
+         make-trace-contract)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; require
@@ -23,13 +22,11 @@
 ;; data
 
 ;; A `trace-contract` is the main trace contract struct.
+;;   - `name` : SExpr
 ;;   - `decls` : [Listof Decl]
-;;   - `global?` : Boolean
 ;;   - `make-inner` : Procedure
-;;   - `clauses` : [Listof Clause]
-;;   - `checker-hash` : Checker-Hash
 ;;   - `indy` : Any, contract-defining party
-(struct trace-contract (decls global? make-inner clauses checker-hash indy))
+(struct trace-contract (name decls make-inner indy))
 
 (define (make-contract-property builder)
   (builder
@@ -47,35 +44,21 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; constructor
 
-;; [Listof Decl] Boolean Procedure [Listof Clause] Any → Trace-Contract
-(define (make-trace-contract decls global? inners clauses indy)
-  (define checker-hash (and global? (make-checker-hash clauses)))
-  (define ctcs
-    (for/list ([inner (in-list inners)])
-      (define make
-        (if (chaperone-contract? (trace-contract-fake-inner decls inner))
-            chaperone-trace-contract
-            impersonator-trace-contract))
-      (make decls global? inner clauses checker-hash indy)))
-  (apply values ctcs))
+;; SExpr [Listof Decl] Boolean Procedure Any → Trace-Contract ...
+(define (make-trace-contract name decls global? inners indy)
+  (define collectors (trace-contract-collectors decls indy))
+  (for/values ([inner (in-list inners)])
+    (define body-ctc (apply inner collectors))
+    (define make
+      (if (chaperone-contract? body-ctc)
+          chaperone-trace-contract
+          impersonator-trace-contract))
+    (if global?
+        (make name decls (λ _ body-ctc) indy)
+        (make name decls inner indy))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; functions
-
-;; Trace-Contract → Sexpr
-(define (trace-contract-name ctc)
-  (match-define (struct** trace-contract (decls global? make-inner clauses)) ctc)
-  (define inner-ctc (trace-contract-fake-inner decls make-inner))
-  `(trace/c ,(map decl-contract-name decls)
-     ,@(if global? '(#:global) null)
-     ,(contract-name inner-ctc)
-     ,@(map clause-contract-name clauses)))
-
-;; Decls Procedure → Contract
-;; Create a bunch of fake collectors to supply to the inner contract maker.
-(define (trace-contract-fake-inner decls make-inner)
-  (define fake-collectors (trace-contract-collectors (hash) decls #f))
-  (apply make-inner fake-collectors))
 
 ;; Trace-Contract → Late-Neg-Proj
 (define (trace-contract-late-neg-projection ctc)
@@ -85,32 +68,17 @@
     (λ (val neg)
       (when logger-enable?
         (log-trace-contract-info "projection"))
-      (define ch (trace-contract-checker-hash (trace-contract-init ctc)))
-      (define collectors (trace-contract-collectors ch decls indy))
+      (define collectors (trace-contract-collectors decls indy))
       (define inner-ctc (apply make-inner collectors))
       (define inner-late-neg (get/build-late-neg-projection inner-ctc))
       (define inner-proj (inner-late-neg blm*))
       (inner-proj val neg))))
 
-;; Trace-Contract {Checker-Hash} → Trace-Contract
-;; Set or create the checker hash if it doesn't exist already.
-(define (trace-contract-init ctc [init-ch #f])
-  (match-define (struct** trace-contract (clauses checker-hash)) ctc)
-  (cond
-    [checker-hash ctc]
-    [else
-     (define checker-hash* (or init-ch (make-checker-hash clauses)))
-     (if (impersonator-trace-contract? ctc)
-         (struct-copy impersonator-trace-contract ctc
-                      [checker-hash #:parent trace-contract checker-hash*])
-         (struct-copy chaperone-trace-contract ctc
-                      [checker-hash #:parent trace-contract checker-hash*]))]))
-
-;; Checker-Hash [Listof Decl] Any → [Listof Collector]
-(define (trace-contract-collectors checker-hash decls indy)
+;; [Listof Decl] Any → [Listof Collector]
+(define (trace-contract-collectors decls indy)
   (for/list ([de (in-list decls)])
     (match-define (struct** decl (var ctc)) de)
-    (make-collector var ctc (hash-ref checker-hash var #f) indy)))
+    (make-collector var ctc indy)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; examples
@@ -122,11 +90,14 @@
            (submod "clause.rkt" example))
 
   (define pos/c
-    (make-trace-contract (list x)
-                         #f
-                         (list (λ (x) (-> any/c x)))
-                         (list positive-clause)
-                         'indy)))
+    (make-trace-contract
+     '(trace/c ((x integer?)) (-> any/c x) (accumulate 1 ((x) positive-folder)))
+     (list x)
+     #f
+     (list (λ (x)
+             (clause-register! (positive-clause x))
+             (-> any/c x)))
+     'indy)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; tests
@@ -138,10 +109,10 @@
   (chk
    #:t (chaperone-contract? pos/c)
    #:t (impersonator-contract?
-        (make-trace-contract '()
+        (make-trace-contract 'trace/c
+                             '()
                              #f
                              (list (λ () (parametric->/c (A) (-> A A))))
-                             '()
                              #f))
 
    (contract-name pos/c)

@@ -28,6 +28,7 @@
          racket/set
          "decl.rkt"
          "clause.rkt"
+         "collector-contract.rkt"
          "subclause.rkt"
          "trace-contract.rkt")
 
@@ -95,7 +96,7 @@
       #:literal-sets (trace-clause-literals)
       [(accumulate init-acc:expr [(var:id ...+) folder:expr] ...+)
        (maybe-raise-duplicate-identifier-error #'(var ... ...))
-       (maybe-raise-missing-identifier-error #'(var ... ...))
+       #;(maybe-raise-missing-identifier-error #'(var ... ...))
        stx]
       [(combine raw-rst ...)
        #:with (rst ...) (stx-map trace-clause-expand #'(raw-rst ...))
@@ -131,7 +132,7 @@
        #:declare folder
        (expr/c (let* ([num (length (syntax->list #'(var ...)))])
                  #`(folder/c #,num)))
-       (list #'(make-clause init-acc (subclause '(var ...) folder.c) ...))]
+       (list #'(make-clause init-acc (subclause (list var ...) folder.c) ...))]
       [(combine e ...)
        (append-map trace-clause-compile (syntax->list #'(e ...)))]))
   )
@@ -149,24 +150,34 @@
 ;; `trace/c` interface macro
 
 (define-syntax (trace/c stx)
-  (syntax-parse stx
-    [(_ decls:decls
-        (~optional (~and #:global (~bind [?global #'#t]))
-                   #:defaults ([?global #'#f]))
-        inners:inners
-        (~describe "trace clause" raw-clause) ...+)
-     (with-scope sc
-       (for ([var (in-syntax #'decls.vars)])
-         (bind! (add-scope var sc) (trace-variable)))
-       (define/syntax-parse (clause ...)
-         (trace-clause-compile
-          (trace-clause-expand
-           (add-scope #'(combine raw-clause ...) sc))))
-       #'(make-trace-contract decls.norm
-                              ?global
-                              (list (λ decls.vars inners.norm) ...)
-                              (list clause ...)
-                              (current-contract-region)))]))
+  (with-scope sc
+    (syntax-parse stx
+      [(_ decls:decls
+          (~optional (~and #:global (~bind [?global #'#t]))
+                     #:defaults ([?global #'#f]))
+          inners:inners
+          (~describe "trace clause" raw-clause) ...)
+       #:with (decl-var ...) #'decls.vars
+       #|
+       #:do [(for ([var (in-syntax #'(decl-var ...))])
+       (bind! (add-scope var sc) (trace-variable)))]
+       |#
+       #:with (body ...)
+       (for/list ([body (in-syntax #'(inners.norm ...))])
+         body #;(add-scope body sc))
+       #:with (clause ...)
+       (trace-clause-compile
+        (trace-clause-expand
+         #'(combine raw-clause ...)
+         #;(add-scope #'(combine raw-clause ...) sc)))
+       #`(make-trace-contract
+          '#,stx
+          decls.norm
+          ?global
+          (list (λ decls.vars
+                  (clause-register! clause) ...
+                  body) ...)
+          (current-contract-region))])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; tests

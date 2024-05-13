@@ -9,6 +9,6 @@
 ;; data
 
 ;; A `subclause` associates variables with folding procedures.
-;;   - `vars` : [Listof Symbol]
+;;   - `collectors` : [Listof Collector]
 ;;   - `folder` : Procedure.
-(struct subclause (vars folder))
+(struct subclause (collectors folder))

@@ -9,7 +9,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; require
 
-(require "collector-contract.rkt")
+(require racket/contract
+         "collector-contract.rkt")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; transformers
@@ -18,10 +19,13 @@
 (define (map/t f cctc)
   (define old-mapper (collector-contract-mapper cctc))
   (define mapper* (if old-mapper (compose f old-mapper) f))
+  (define name* `(map/t ,(object-name f) ,(contract-name cctc)))
   (if (chaperone-collector-contract? cctc)
       (struct-copy chaperone-collector-contract cctc
+                   [name #:parent collector-contract name*]
                    [mapper #:parent collector-contract mapper*])
       (struct-copy impersonator-collector-contract cctc
+                   [name #:parent collector-contract name*]
                    [mapper #:parent collector-contract mapper*])))
 
 ;; Collector transformer that produces lists.
