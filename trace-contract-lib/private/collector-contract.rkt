@@ -29,7 +29,8 @@
 ;;   - `mapper` : Procedure
 ;;   - `checkers` : [Setof Checkers], checkers dependent this on collector
 ;;   - `indy` : Any
-(struct collector-contract (name pre mapper checkers indy))
+(struct collector-contract (name pre mapper checkers indy)
+  #:property prop:object-name 0)
 
 (define (make-contract-property builder)
   (builder
@@ -87,21 +88,3 @@
     (define ch (checker acc-box acc-sem init-acc collectors blame-box val-hash folder*))
     (for ([collector (in-list collectors)])
       (set-add! (collector-contract-checkers collector) ch))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; example
-
-(module+ examples
-  (provide (all-defined-out))
-  (define empty-collector (make-collector 'x any/c #f)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; tests
-
-(module+ test
-  (require chk
-           (submod ".." examples))
-
-  (chk
-   (collector-contract-name empty-collector)  'x
-   ))

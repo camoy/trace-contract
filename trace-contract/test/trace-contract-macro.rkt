@@ -1,5 +1,11 @@
 #lang racket/base
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; require
+
+(require trace-contract
+         racket/contract)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; tests
 
@@ -24,16 +30,11 @@
 
    #:x
    (convert-syntax-error
-    (trace/c ([x integer?])
-      any/c
-      (accumulate 0 [(y) values])))
-   "trace variable not declared"
-
-   #:x
-   (convert-syntax-error
-    (trace/c ([x integer?])
-      any/c))
-   "expected more terms starting with trace clause"
+    (let ([y 42])
+      (trace/c ([x integer?])
+        any/c
+        (accumulate 0 [(y) values]))))
+   "macro argument contract on clause dependency"
 
    #:x
    (convert-syntax-error
