@@ -1,0 +1,19 @@
+(define (make-port-fold/c folder)
+  (trace/c ([t output-port?])
+    #:global
+    (values
+     ;; open-output-bytes
+     (-> (list/t t 'open))
+     ;; write-byte
+     (-> byte? (list/t t 'write) any)
+     ;; close-output-port
+     (-> (list/t t 'close) any))
+    (accumulate (hasheq) [(t) folder])))
+
+(define PORTS-RE
+  (re (seq/close 'open (star 'write) 'close)))
+
+(define (port-folder acc t)
+  (match-define (list port sym) t)
+  (define acc* (hash-update acc port (λ (mach) (mach sym)) (λ () PORTS-RE)))
+  (if (machine-accepting? (hash-ref acc* port)) acc* (fail)))

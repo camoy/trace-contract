@@ -1,0 +1,15 @@
+(define (make-fold-player*/c folder)
+  (self/c
+   (λ (players)
+     (trace/c ([this/c any/c])
+       (make-player*/c this/c)
+       (accumulate players
+         [(this/c) folder])))))
+
+;; We don't have access to referee state, so assume if we skipped over some
+;; player that they dropped out.
+(define (protocol-check players this)
+  (define players-rest (member this players))
+  (if (empty? players-rest)
+      (fail)
+      (rotate players-rest)))

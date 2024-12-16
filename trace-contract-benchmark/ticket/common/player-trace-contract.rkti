@@ -1,0 +1,41 @@
+(define (make-fold-player/c folder)
+  (trace/c ([this/c any/c])
+    (make-player/c (list/t 'setup this/c)
+                   (list/t 'pick this/c)
+                   (list/t 'play this/c)
+                   (list/t 'more this/c)
+                   (list/t 'win this/c))
+    (accumulate #f [(this/c) folder])
+    #;(accumulate player-protocol [(this/c) folder])))
+
+#;(define player-protocol
+  (nfa (setup) (setup pick play more win done)
+    [setup ([`(setup ,_)          (pick)])]
+    [pick  ([`(pick  ,_)          (play)])]
+    [play  ([`(play ,(? action?)) (play win)]
+            [`(play ,(? more?))   (play more win)])]
+    [more  ([`(more ,_)           (play win)])]
+    [win   ([`(win ,true)         (setup)]
+            [`(win ,false)        (done)])]
+    [done  ()]))
+
+#;(define (protocol-check acc x)
+  (define next-acc (acc x))
+  (if (machine-accepting? next-acc) next-acc (fail)))
+
+(define PPM '(pick play more))
+
+(define (protocol-check last-seen val)
+  (match-define (list method arg) val)
+  (define (~> targets then)
+    (if (member last-seen targets) then (fail)))
+  (cond
+    [(false? last-seen) (if (eq? method 'setup) method (fail))]
+    [else
+     (case method
+       [(setup) (~> '(win) method)]
+       [(pick)  (~> '(setup) method)]
+       [(play)  (~> PPM (if (equal? MORE arg) 'more method))]
+       [(more)  (~> '(more) method)]
+       [(win)   (~> PPM (if (false? arg) 'done method))]
+       [else    (fail)])]))

@@ -26,7 +26,6 @@
 
 (define build-deps
   '("rackunit-lib"
-    "trace-contract-private"
     "chk-lib"
     "racket-doc"
     "sandbox-lib"

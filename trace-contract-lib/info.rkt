@@ -11,7 +11,8 @@
 ;; dependencies
 
 (define deps
-  '("base"
+  '("meta"
+    "base"
     "ee-lib"))
 
 (define build-deps

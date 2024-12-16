@@ -1,0 +1,23 @@
+(define (protocol-check last-seen val)
+  (define method (first val))
+  (define (~> targets then)
+    (if (member last-seen targets) then (fail)))
+  (cond
+    [(false? last-seen) (if (eq? 'playing-as method) method (fail))]
+    [else
+     (case method
+       ;; It might be possible for `playing-as` to be called after `initial`.
+       [(playing-as)   (~> '(take-turn) method)]
+       [(playing-with) (~> '(playing-as) method)]
+       ;; This is too generous; there should be exactly two calls to `initial`.
+       [(initial)      (~> '(playing-with initial) method)]
+       [(take-turn)    (~> '(initial take-turn) method)]
+       [else (fail)])]))
+
+(define (make-fold-player/c folder)
+  (trace/c ([this/c any/c])
+    (make-player/c (list/t 'playing-as this/c)
+                   (list/t 'playing-with this/c)
+                   (list/t 'initial this/c)
+                   (list/t 'take-turn this/c))
+    (accumulate #f [(this/c) folder])))

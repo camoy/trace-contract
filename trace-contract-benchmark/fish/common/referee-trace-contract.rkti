@@ -1,0 +1,29 @@
+(define (make-fold-player*/c folder)
+  (self/c
+   (λ (players)
+     (trace/c ([this/c any/c]
+               [state/c fishes?]
+               [actions/c (listof turn?)])
+       (make-player*/c this/c state/c actions/c)
+       (accumulate players
+         [(this/c state/c actions/c) folder])))))
+
+(define (protocol-check players this state actions)
+  (let*-values ([(players) (revise-order players actions)]
+                [(state-players) (fishes-players state)]
+                [(expected-player players)
+                 (if (= (length state-players) (length players))
+                     (values (first players) players)
+                     (values this (map iplayer-payload state-players)))])
+    (if (equal? expected-player this)
+        (rotate players)
+        (fail))))
+
+#; {[Listof X] [Listof (U Y Symbol)] -> [Listof X]}
+;; Push the X's to the end of `players` while there are SKIP's at the end
+;; of `actions`.
+(define (revise-order players actions)
+  (let go ([players players] [actions (reverse actions)])
+    (match actions
+      [(cons (? skip?) a-rest) (go (rotate players) a-rest)]
+      [_ players])))

@@ -1,0 +1,7 @@
+(define (make-memory-fold/c folder)
+  (trace/c ([y exact-nonnegative-integer?])
+    (cumulative-> y)
+    (accumulate -inf.0 [(y) folder])))
+
+(define (memory-folder acc x)
+  (if (<= acc x) x (fail)))

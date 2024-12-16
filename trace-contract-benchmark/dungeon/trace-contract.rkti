@@ -1,0 +1,14 @@
+(define (make-max-calls-fold/c folder n)
+  (trace/c ([k (or/c 'reset 1)])
+    #:global
+    (values (apply/c [k 1])
+            (apply/c [k 1])
+            (apply/c [k 'reset]))
+    (accumulate 0 [(k) folder])))
+
+(define (make-max-calls-folder n)
+  (λ (acc k)
+    (if (eq? k 'reset)
+        0
+        (let ([acc* (+ k acc)])
+          (if (<= acc* n) acc* (fail))))))

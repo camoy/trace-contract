@@ -29,26 +29,3 @@
 (define (decl-contract-name de)
   (match-define (struct** decl (var ctc)) de)
   `[,var ,(contract-name ctc)])
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; examples
-
-(module+ example
-  (provide (all-defined-out))
-
-  (define x (decl 'x integer?))
-  (define y (decl 'y integer?))
-  (define z (decl 'z integer?))
-  (define s (decl 's string?))
-  )
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; tests
-
-(module+ test
-  (require chk
-           (submod ".." example))
-
-  (chk
-   (decl-contract-name x)  '[x integer?]
-   ))

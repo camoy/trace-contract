@@ -296,3 +296,109 @@ These bindings are provided at phase 1.
   Reports a time-ordered list of suspects---one
   for each collected value.
 }
+
+@section{Attribute Contracts}
+
+An attribute contract uses
+metadata associated with a value
+to determine if it passes the contract.
+Consider the following "box-like" structure:
+
+@examples[#:eval evaluator #:no-result
+  (struct container (elem) #:mutable)
+
+  (define init-attr (make-attribute 'init))
+  (define container/c (attribute/c container? init-attr #f))
+  (define initialized-container? (attribute-satisfies/c init-attr values))
+  (define initialize-container/c (attribute-set/c init-attr #t))]
+
+When a value flows through a @racket[container/c] contract,
+it attaches a piece of metadata associating the attribute
+@racket[init-attr] to @racket[#f].
+The flat contract @racket[initialized-container?]
+reads this metadata and is satisfied if the value is @racket[#t].
+The @racket[initialize-contract/c] contract
+sets the attribute to be @racket[#t].
+
+Here are a few functions that make use of these contracts:
+
+@examples[#:eval evaluator #:no-result
+  (define/contract (make-container)
+    (-> container/c)
+    (container #f))
+
+  (define/contract (set-container! c v)
+    (-> initialize-container/c any/c void?)
+    (set-container-elem! c v))
+
+  (define/contract (container-ref c)
+    (-> initialized-container? any/c)
+    (container-elem c))]
+
+Here is a correct call sequence:
+
+@examples[#:eval evaluator #:label #f
+  (define c-good (make-container))
+  (set-container! c-good 42)
+  (container-ref c-good)]
+
+Here is an incorrect call sequence,
+where @racket[container-ref] is called
+before the container is initialized:
+
+@examples[#:eval evaluator #:label #f
+  (define c-bad (make-container))
+  (eval:error (container-ref c-bad))]
+
+@defproc[(make-attribute [name symbol? '???]) attribute?]{
+  Returns a fresh attribute.
+}
+
+@defproc[(attribute? [v any/c]) boolean?]{
+  Returns if @racket[v] is an attribute.
+}
+
+@defproc[(attribute/c [ctc flat-contract? any/c]
+                      [key attribute?] [val any/c] ... ...)
+                      attribute-contract?]{
+  Produces an attribute contract that associates
+  the given attributes to the given values.
+}
+
+@defproc[(attribute-contract? [v any/c]) boolean?]{
+  Returns if @racket[v] is an attribute contract.
+}
+
+@defproc[(attribute-present/c [attr attribute?]) flat-contract?]{
+  Produces a contract that is satisfied if the protected value
+  has the given attribute.
+}
+
+@defproc[(attribute-present? [attr attribute?] [e any/c]) boolean?]{
+  Returns if @racket[e] has the given attribute.
+}
+
+@defproc[(attribute-set/c [attr attribute?] [v any/c]) flat-contract?]{
+  Produces a contract that sets the attribute to @racket[v].
+}
+
+@defproc[(attribute-set! [attr attribute?] [e any/c] [v any/c]) void?]{
+  Sets the attribute on @racket[e] to @racket[v].
+}
+
+@defproc[(attribute-update/c [attr attribute?] [f (-> any/c any/c)]) contract?]{
+  Produces a contract that updates the attribute using @racket[f].
+}
+
+@defproc[(attribute-update! [attr attribute?] [e any/c] [f (-> any/c any/c)]) void?]{
+  Updates the given attribute on @racket[e] using @racket[f].
+}
+
+@defproc[(attribute-satisfies/c [attr attribute?] [f predicate/c]) contract?]{
+  Produces a contract that is satisfied if the protected value
+  has the attribute @racket[attr] and it satisfies @racket[f].
+}
+
+@defproc[(attribute-satisfies? [attr attribute?] [e any/c] [f predicate/c]) boolean?]{
+  Returns if @racket[e] has the attribute @racket[attr] and it satisfies @racket[f].
+}

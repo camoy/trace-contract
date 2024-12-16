@@ -5,6 +5,27 @@
 
 (require racket/contract)
 (provide
+ ;; `attribute-contract.rkt`
+ (contract-out
+  [attribute-contract? predicate/c]
+  [attribute? predicate/c]
+  [make-attribute (->* () (symbol?) attribute?)]
+  [attribute/c (->* ((and/c flat-contract?
+                            (or/c contract-implies-meta?
+                                  struct-predicate-procedure?)))
+                    ()
+                    #:rest attribute-value-list?
+                    attribute-contract?)]
+  [attribute-present/c (-> attribute? flat-contract?)]
+  [attribute-present? (-> attribute? any/c boolean?)]
+  [attribute-set/c (-> attribute? any/c contract?)]
+  [attribute-set! (-> attribute? any/c any/c void?)]
+  [attribute-update/c (-> attribute? (procedure-arity-includes/c 1) contract?)]
+  [attribute-update! (-> attribute? any/c (procedure-arity-includes/c 1) void?)]
+  [attribute-satisfies/c (-> attribute? (procedure-arity-includes/c 1) contract?)]
+  [attribute-satisfies? (-> attribute? any/c (procedure-arity-includes/c 1) any/c)]
+  [attribute-contract-logger logger?])
+
  ;; `collector-contract.rkt`
  (contract-out
   [collector-contract? predicate/c])
@@ -55,6 +76,7 @@
 ;; require
 
 (require racket/class
+         "private/attribute-contract.rkt"
          "private/collector-contract.rkt"
          "private/collector-transformer.rkt"
          "private/fail.rkt"

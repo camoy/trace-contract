@@ -1,0 +1,44 @@
+(define (pen-install/c x)
+  (attribute-update/c pen-installed-key (λ (s) (set-add s x))))
+(define (pen-uninstall/c x)
+  (or/c (not/c (attribute-present/c pen-installed-key))
+        (attribute-update/c pen-installed-key (λ (s) (set-remove s x)))))
+(define pen-uninstalled?
+  (attribute-satisfies/c pen-installed-key set-empty?))
+(define (bitmap-install/c x)
+  (attribute-update/c bitmap-installed-key (λ (s) (set-add s x))))
+(define (bitmap-install-exclusive/c dc)
+  (define (ok? cur)
+    (or (set-empty? cur) (set=? cur (set dc))))
+  (and/c (attribute-satisfies/c bitmap-installed-key ok?)
+         (attribute-set/c bitmap-installed-key (set dc))))
+(define (bitmap-uninstall/c x)
+  (attribute-update/c bitmap-installed-key (λ (s) (set-remove s x))))
+(define bitmap-save-data?
+  (attribute-satisfies/c bitmap-save-data-key values))
+(define bitmap-loadable?
+  (attribute-satisfies/c
+   bitmap-origin-key
+   (λ (origin)
+     (not (set-member? BITMAP-UNLOADABLES origin)))))
+(define (dc-install/c bmp)
+  (attribute-set/c dc-install-key bmp))
+(define (dc-next/c sym)
+  (and/c (attribute-update/c dc-status-key (λ (a) (a sym)))
+         (attribute-satisfies/c dc-status-key machine-accepting?)))
+(define dc-installed? (attribute-satisfies/c dc-install-key values))
+(define dc-draw-ready? (and/c dc-installed? (dc-next/c 'draw)))
+(define (brush-install/c x)
+  (attribute-update/c brush-installed-key (λ (s) (set-add s x))))
+(define (brush-uninstall/c x)
+  (or/c (not/c (attribute-present/c brush-installed-key))
+        (attribute-update/c brush-installed-key (λ (s) (set-remove s x)))))
+(define brush-uninstalled?
+  (attribute-satisfies/c brush-installed-key set-empty?))
+  (define color-mutable? (attribute-satisfies/c color-immutable-key not))
+  (define dc-path-open? (attribute-satisfies/c dc-path-open-key values))
+(define (dc-path-append/c path)
+  (attribute-update/c
+   dc-path-open-key
+   (λ (self-open?)
+     (or self-open? (dc-path-open? path)))))
