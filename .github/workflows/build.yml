@@ -14,9 +14,9 @@ jobs:
           architecture: 'x64'
           distribution: 'full'
           version: 'current'
-      - run: raco pkg install --auto --no-setup --skip-installed
-      - run: raco setup --fast-clean trace-contract
-      - run: raco setup trace-contract
+      - run: raco pkg install --auto trace-contract/ trace-contract-lib/ trace-contract-benchmark/
+      #- run: raco setup --fast-clean trace-contract
+      #- run: raco setup trace-contract
       - uses: GabrielBB/xvfb-action@v1
         with:
           run: raco test --drdr --timeout 240 trace-contract

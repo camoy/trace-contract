@@ -1,11 +1,15 @@
 # Trace Contracts
 
-[![Build Status](https://github.com/camoy/trace-contract/workflows/build/badge.svg)](https://github.com/camoy/trace-contract/actions?query=workflow%3Abuild)
+[![Build Status][build-badge]][build]
+[![Scribble][docs-badge]][docs]
 
-This package is not yet available on the Racket package server, so you must install it from the source.
+## Install
 
 ```
-$ git clone https://github.com/camoy/trace-contract
-$ cd trace-contract
-$ raco pkg install
+$ raco pkg install trace-contract
 ```
+
+[build-badge]: https://github.com/camoy/trace-contract/actions/workflows/build.yml/badge.svg
+[build]: https://github.com/camoy/trace-contract/actions/workflows/build.yml?query=workflow%3Abuild
+[docs-badge]: https://img.shields.io/badge/Docs-Scribble-blue.svg
+[docs]: https://docs.racket-lang.org/trace-contract
