@@ -70,7 +70,11 @@
   [suspect<%> interface?]
   [setof-suspect (is-a?/c suspect<%>)]
   [listof-suspect (is-a?/c suspect<%>)]
-  [listof-witness (is-a?/c suspect<%>)]))
+  [listof-witness (is-a?/c suspect<%>)])
+
+ ;; `object-trace.rkt`
+ object-trace/c
+ this-contract)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; require
@@ -84,7 +88,8 @@
          "private/logger.rkt"
          "private/trace-contract.rkt"
          "private/trace-contract-macro.rkt"
-         "private/track-clause.rkt")
+         "private/track-clause.rkt"
+         "private/object-trace.rkt")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; contracts
