@@ -31,7 +31,7 @@ These are examples from other papers that can be implemented using trace contrac
 * `files` (*Disney et al. p.3*). You cannot call close, read, or write after a file has been already closed.
 * `lock` (*Disney et al. p.10*). Acquire and release locks. This is a variation that supports reentrant locking.
 * `has-next` (*Chen, Rosu p.15*). Requires that the client call `has-next` on an iterator before calling `next!`.
-* `mutable-key` (*Chen, Rosu p.15*). The hash code of an object should not be changed while it is a key in a hash.
+* `mutable-key` (*Chen, Rosu p.15*, *Ancona, Ferrando, Mascardi (2023)*). The hash code of an object should not be changed while it is a key in a hash.
 * `take5`. (*Dimoulas et al. p.9*) Modified version of the protocol from the Take 5 game. It uses trace threading to define the predicate.
 * `ensure`. (*Scholliers et al. p.6*) Combination trace and parameterize contracts used to ensure a function is called.
 

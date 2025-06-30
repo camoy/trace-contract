@@ -184,6 +184,29 @@ Here's an interaction that uses this contract:
   the accumulator appropriately.
 }
 
+@defform[(object-trace/c opt ... sig ...)
+	 #:grammar
+	 [(opt (code:line #:satisfies mach-expr)
+               (code:line #:refutes mach-expr)
+               (code:line #:include ctc-expr)
+               (code:line #:extend ctc-expr))
+	  (sig (code:line (@#,racket[->m] dom ... res) evt)
+	       (code:line (@#,racket[->dm] [dom-id dom] ... [res-id res]) evt))]]{
+  Constructs an object contract,
+  similar to @racket[object/c],
+  but with tracing of method events.
+  The @racket[#:satisfies] and @racket[#:refutes] keywords
+  should be given a machine to determine satisfaction
+  (refutation) of the trace of method events.
+  The @racket[#:include] and @racket[#:extend] keywords
+  keywords allow the trace to receive (give) method events.
+}
+
+@defthing[this-contract contract?]{
+  Returns the current contract in @racket[object-trace/c]
+  for use in the @racket[#:include] and @racket[#:extend] options.
+}
+
 @defproc[(trace-contract? [v any/c]) boolean?]{
   Returns if @racket[v] is a trace contract.
 }
