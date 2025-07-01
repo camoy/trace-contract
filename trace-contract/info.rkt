@@ -10,7 +10,8 @@
 ;; dependencies
 
 (define deps
-  '("automata-lib"
+  '("logic-lib"
+    "automata-lib"
     "contract-etc-lib"
     "data-lib"
     "graph-lib"

@@ -11,7 +11,8 @@
 ;; dependencies
 
 (define deps
-  '("meta"
+  '("automata-lib"
+    "meta"
     "base"
     "ee-lib"))
 
