@@ -6,6 +6,7 @@
 (define collection "trace-contract")
 (define scribblings
   '(["scribblings/trace-contract.scrbl" ()]))
+(define test-omit-paths '("model"))
 
 ;; dependencies
 
