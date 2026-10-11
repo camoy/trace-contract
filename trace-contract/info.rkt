@@ -4,6 +4,7 @@
 
 (define name "trace-contract")
 (define collection "trace-contract")
+(define pkg-desc "Full implementation of trace-contract")
 (define scribblings
   '(["scribblings/trace-contract.scrbl" ()]))
 (define test-omit-paths '("model"))
